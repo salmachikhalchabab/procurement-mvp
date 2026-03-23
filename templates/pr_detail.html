@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ pr.pr_number }}{% endblock %}
+{% block page_title %}{{ pr.pr_number }}{% endblock %}
+{% block page_sub %}Purchase Request Detail{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('pr_list') }}" class="btn btn-outline btn-sm">← All PRs</a>
+{% endblock %}
+
+{% block content %}
+<!-- PR Info Card -->
+<div class="card" style="margin-bottom:20px">
+  <div class="section-header">
+    <div class="card-title">PR Information</div>
+    <span class="badge {% if pr.status == 'Open' %}badge-warning{% elif pr.status == 'RFQ Sent' %}badge-blue{% else %}badge-green{% endif %}">
+      {{ pr.status }}
+    </span>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="detail-label">PR Number</div>
+      <div class="detail-value mono">{{ pr.pr_number }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Raw Material</div>
+      <div class="detail-value">{{ pr.raw_material_name }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Quantity</div>
+      <div class="detail-value mono">{{ pr.quantity }} {{ pr.unit_of_measure }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Requested Date</div>
+      <div class="detail-value mono">{{ pr.requested_date }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Requester</div>
+      <div class="detail-value">{{ pr.requester }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">For Product</div>
+      <div class="detail-value">{{ pr.product_name or '—' }}</div>
+    </div>
+  </div>
+
+  {% if pr.notes %}
+  <div style="padding-top:4px">
+    <div class="detail-label" style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px">Notes</div>
+    <div style="font-size:13px;color:var(--muted)">{{ pr.notes }}</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Generate RFQ Card -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title">Generate RFQ Document</div>
+  <form method="POST" action="{{ url_for('generate_rfq', pr_id=pr.id) }}" style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="form-group" style="flex:1; min-width:200px;">
+      <label>Send to Vendor (optional)</label>
+      <select name="vendor_id" class="form-control">
+        <option value="">— No specific vendor —</option>
+        {% for v in vendors %}
+          <option value="{{ v.id }}">{{ v.name }} ({{ v.country }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="flex:1; min-width:180px;">
+      <label>Quotation Due Date *</label>
+      <input type="date" name="due_date" class="form-control" required>
+    </div>
+    <div style="padding-bottom:0px">
+      <button type="submit" class="btn btn-success">⬇ Generate RFQ PDF</button>
+    </div>
+  </form>
+</div>
+
+<!-- RFQs Table -->
+<div class="card">
+  <div class="card-title">Generated RFQs</div>
+  {% if rfqs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>RFQ Number</th>
+          <th>Vendor</th>
+          <th>Due Date</th>
+          <th>Generated</th>
+          <th>PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rfq in rfqs %}
+        <tr>
+          <td class="mono">{{ rfq.rfq_number }}</td>
+          <td>{{ rfq.vendor_name or '—' }}</td>
+          <td class="mono">{{ rfq.quotation_due_date }}</td>
+          <td class="mono" style="color:var(--muted);font-size:11px">{{ rfq.created_at[:16] }}</td>
+          <td>
+            <a href="{{ url_for('download_rfq', rfq_id=rfq.id) }}" class="btn btn-outline btn-sm">
+              ↓ Download PDF
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">◈</div>
+    <p>No RFQs generated yet. Use the form above to create one.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

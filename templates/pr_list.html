@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Purchase Requests{% endblock %}
+{% block page_title %}Purchase Requests{% endblock %}
+{% block page_sub %}All purchase requests in the system{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('create_pr') }}" class="btn btn-primary">+ New PR</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  {% if prs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>PR Number</th>
+          <th>Material</th>
+          <th>Qty / UOM</th>
+          <th>Requested Date</th>
+          <th>Requester</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in prs %}
+        <tr>
+          <td class="mono">{{ pr.pr_number }}</td>
+          <td>{{ pr.raw_material_name }}</td>
+          <td class="mono">{{ pr.quantity }} {{ pr.unit_of_measure }}</td>
+          <td class="mono">{{ pr.requested_date }}</td>
+          <td>{{ pr.requester }}</td>
+          <td>
+            <span class="badge {% if pr.status == 'Open' %}badge-warning{% elif pr.status == 'RFQ Sent' %}badge-blue{% else %}badge-green{% endif %}">
+              {{ pr.status }}
+            </span>
+          </td>
+          <td class="mono" style="color:var(--muted);font-size:11px">{{ pr.created_at[:10] }}</td>
+          <td><a href="{{ url_for('pr_detail', pr_id=pr.id) }}" class="btn btn-outline btn-sm">View →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">◈</div>
+    <p>No purchase requests yet. <a href="{{ url_for('create_pr') }}" style="color:var(--accent)">Create the first one.</a></p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
