@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}New Purchase Request{% endblock %}
+{% block page_title %}New Purchase Request{% endblock %}
+{% block page_sub %}Fill in the details to create a new PR{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('pr_list') }}" class="btn btn-outline btn-sm">← Back to list</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 820px;">
+  <div class="card-title">Purchase Request Details</div>
+
+  <form method="POST" action="{{ url_for('create_pr') }}">
+    <div class="form-grid form-grid-2">
+      <div class="form-group">
+        <label>Raw Material *</label>
+        <select name="raw_material_id" class="form-control" required id="mat-select">
+          <option value="">— Select material —</option>
+          {% for m in materials %}
+            <option value="{{ m.id }}" data-uom="{{ m.unit_of_measure }}">{{ m.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>For Product (optional)</label>
+        <select name="product_id" class="form-control">
+          <option value="">— General request —</option>
+          {% for p in products %}
+            <option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="form-grid form-grid-3">
+      <div class="form-group">
+        <label>Quantity *</label>
+        <input type="number" name="quantity" class="form-control" placeholder="e.g. 500" min="0.01" step="0.01" required>
+      </div>
+      <div class="form-group">
+        <label>Unit of Measure *</label>
+        <input type="text" name="unit_of_measure" id="uom-field" class="form-control" placeholder="KG / MTR / PCS" required>
+      </div>
+      <div class="form-group">
+        <label>Requested Date *</label>
+        <input type="date" name="requested_date" class="form-control" value="{{ today }}" required>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="form-grid form-grid-2">
+      <div class="form-group">
+        <label>Requester Name *</label>
+        <input type="text" name="requester" class="form-control" placeholder="Full name" required>
+      </div>
+      <div class="form-group">
+        <label>Notes / Specifications</label>
+        <input type="text" name="notes" class="form-control" placeholder="Any special requirements…">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div style="display:flex; gap:12px;">
+      <button type="submit" class="btn btn-primary">Create Purchase Request →</button>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.getElementById('mat-select').addEventListener('change', function() {
+    const opt = this.options[this.selectedIndex];
+    const uom = opt.getAttribute('data-uom');
+    if (uom) document.getElementById('uom-field').value = uom;
+  });
+</script>
+{% endblock %}

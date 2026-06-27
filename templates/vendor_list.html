@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Vendors{% endblock %}
+{% block page_title %}Vendors{% endblock %}
+{% block page_sub %}Manage your supplier database{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('create_vendor') }}" class="btn btn-primary">+ Add Vendor</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  {% if vendors %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Company Name</th>
+          <th>Contact Person</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Country</th>
+          <th>RFQs Sent</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vendors %}
+        <tr>
+          <td style="font-weight:500">{{ v.name }}</td>
+          <td style="color:var(--muted)">{{ v.contact_person or '—' }}</td>
+          <td class="mono">{{ v.email }}</td>
+          <td class="mono">{{ v.phone or '—' }}</td>
+          <td>
+            <span class="badge badge-gray">{{ v.country }}</span>
+          </td>
+          <td class="mono" style="color:var(--accent)">{{ v.rfq_count }}</td>
+          <td style="display:flex; gap:8px;">
+            <a href="{{ url_for('edit_vendor', vendor_id=v.id) }}" class="btn btn-outline btn-sm">Edit</a>
+            <form method="POST" action="{{ url_for('delete_vendor', vendor_id=v.id) }}"
+                  onsubmit="return confirm('Delete {{ v.name }}?')">
+              <button type="submit" class="btn btn-sm"
+                      style="background:rgba(239,68,68,0.1);color:#F87171;border:1px solid rgba(239,68,68,0.3);">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">◈</div>
+    <p>No vendors yet. <a href="{{ url_for('create_vendor') }}" style="color:var(--accent)">Add the first one.</a></p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

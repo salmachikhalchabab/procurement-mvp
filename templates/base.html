@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Procurement MVP{% endblock %} — AVERROA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0F1117;--surface:#161B27;--surface2:#1D2535;--border:#2A3347;
+      --accent:#3B82F6;--accent-d:#1D4ED8;--success:#10B981;--warning:#F59E0B;
+      --danger:#EF4444;--text:#E2E8F0;--muted:#64748B;
+      --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+    }
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+    /* Sidebar */
+    .sidebar{width:240px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);
+             display:flex;flex-direction:column;position:fixed;top:0;left:0}
+    .sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+    .sidebar-logo .company{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase}
+    .sidebar-logo .system{font-size:13px;color:var(--muted);margin-top:3px}
+    .sidebar-nav{padding:16px 0;flex:1}
+    .nav-section{padding:8px 20px 4px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--muted);
+              text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+    .nav-link:hover{color:var(--text);background:var(--surface2)}
+    .nav-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(59,130,246,.08)}
+    .nav-link .icon{width:16px;text-align:center;opacity:.7}
+    .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+    /* Main */
+    .main{margin-left:240px;flex:1;min-height:100vh}
+    .topbar{padding:16px 32px;border-bottom:1px solid var(--border);background:var(--surface);
+            display:flex;align-items:center;justify-content:space-between}
+    .topbar-title{font-size:15px;font-weight:500}
+    .topbar-sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .content{padding:32px}
+
+    /* Cards */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px}
+    .card-title{font-size:12px;font-family:var(--mono);color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px}
+    .stat-label{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
+    .stat-value{font-size:32px;font-weight:300;margin-top:6px;font-family:var(--mono)}
+    .stat-value.blue{color:var(--accent)}.stat-value.green{color:var(--success)}
+    .stat-value.warning{color:var(--warning)}.stat-value.muted{color:var(--muted)}
+
+    /* Table */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;padding:10px 14px;font-family:var(--mono);font-size:10px;
+       letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+    td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .mono{font-family:var(--mono);font-size:12px}
+
+    /* Badges */
+    .badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.5px}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60A5FA}
+    .badge-green{background:rgba(16,185,129,.15);color:#34D399}
+    .badge-warning{background:rgba(245,158,11,.15);color:#FCD34D}
+    .badge-gray{background:rgba(100,116,139,.2);color:#94A3B8}
+    .badge-purple{background:rgba(139,92,246,.15);color:#A78BFA}
+    .badge-red{background:rgba(239,68,68,.15);color:#F87171}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;
+         font-size:13px;font-weight:500;cursor:pointer;border:none;text-decoration:none;transition:all .15s}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-d)}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#059669}
+    .btn-danger{background:rgba(239,68,68,.1);color:#F87171;border:1px solid rgba(239,68,68,.3)}
+    .btn-sm{padding:6px 12px;font-size:12px}
+
+    /* Forms */
+    .form-grid{display:grid;gap:20px}
+    .form-grid-2{grid-template-columns:1fr 1fr}
+    .form-grid-3{grid-template-columns:1fr 1fr 1fr}
+    .form-group label{display:block;font-size:11px;font-family:var(--mono);color:var(--muted);
+                      letter-spacing:1px;text-transform:uppercase;margin-bottom:7px}
+    .form-control{width:100%;background:var(--surface2);border:1px solid var(--border);
+                  border-radius:6px;padding:10px 14px;color:var(--text);font-size:13px;
+                  font-family:var(--sans);transition:border-color .15s}
+    .form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    select.form-control{cursor:pointer}
+    textarea.form-control{resize:vertical;min-height:80px}
+
+    /* Flash */
+    .flash-list{list-style:none;margin-bottom:20px}
+    .flash-success{padding:12px 16px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:6px;color:#34D399;font-size:13px}
+    .flash-error{padding:12px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#F87171;font-size:13px}
+
+    /* Status Timeline */
+    .status-timeline{display:flex;align-items:center;gap:0;margin:20px 0}
+    .status-step{display:flex;align-items:center;flex:1}
+    .status-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);
+                display:flex;align-items:center;justify-content:center;font-size:11px;
+                font-family:var(--mono);flex-shrink:0;background:var(--surface)}
+    .status-dot.done{background:var(--success);border-color:var(--success);color:#fff}
+    .status-dot.current{background:var(--accent);border-color:var(--accent);color:#fff}
+    .status-line{flex:1;height:2px;background:var(--border)}
+    .status-line.done{background:var(--success)}
+    .status-label{font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:4px;text-align:center}
+
+    /* Misc */
+    .divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .section-title{font-size:14px;font-weight:500}
+    .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+    .detail-item .detail-label{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+    .detail-item .detail-value{font-size:14px}
+    .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+    .empty-state .empty-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+    .empty-state p{font-size:13px}
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="company">AVERROA</div>
+    <div class="system">Procurement System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <span class="icon">◈</span> Dashboard
+    </a>
+
+    <div class="nav-section" style="margin-top:12px">Procurement</div>
+    <a href="{{ url_for('pr_list') }}" class="nav-link {% if request.endpoint in ['pr_list','pr_detail'] %}active{% endif %}">
+      <span class="icon">≡</span> Purchase Requests
+    </a>
+    {% if has_permission('can_create_pr') %}
+    <a href="{{ url_for('create_pr') }}" class="nav-link">
+      <span class="icon">+</span> New PR
+    </a>
+    {% endif %}
+
+    <div class="nav-section" style="margin-top:12px">Suppliers</div>
+    <a href="{{ url_for('vendor_list') }}" class="nav-link {% if 'vendor' in request.endpoint %}active{% endif %}">
+      <span class="icon">◉</span> Vendors
+    </a>
+    {% if has_permission('can_manage_vendors') %}
+    <a href="{{ url_for('create_vendor') }}" class="nav-link">
+      <span class="icon">+</span> Add Vendor
+    </a>
+    {% endif %}
+
+    <div class="nav-section" style="margin-top:12px">Materials</div>
+    <a href="{{ url_for('material_list') }}" class="nav-link {% if 'material' in request.endpoint %}active{% endif %}">
+      <span class="icon">◈</span> Raw Materials
+    </a>
+    {% if has_permission('can_manage_materials') %}
+    <a href="{{ url_for('create_material') }}" class="nav-link">
+      <span class="icon">+</span> Add Material
+    </a>
+    {% endif %}
+
+    <div class="nav-section" style="margin-top:12px">Products</div>
+    <a href="{{ url_for('product_list') }}" class="nav-link {% if 'product' in request.endpoint %}active{% endif %}">
+      <span class="icon">▣</span> Products
+    </a>
+    {% if has_permission('can_manage_products') %}
+    <a href="{{ url_for('create_product') }}" class="nav-link">
+      <span class="icon">+</span> Add Product
+    </a>
+    {% endif %}
+
+    {% if current_user and current_user.role == 'admin' %}
+    <div class="nav-section" style="margin-top:12px">Admin</div>
+    <a href="{{ url_for('user_list') }}" class="nav-link {% if 'user' in request.endpoint %}active{% endif %}">
+      <span class="icon">⊕</span> Users
+    </a>
+    <a href="{{ url_for('create_user') }}" class="nav-link">
+      <span class="icon">+</span> Add User
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-footer">
+    {% if current_user %}
+    <div style="color:var(--text);font-size:12px;margin-bottom:6px;font-weight:500">
+      {{ current_user.full_name }}
+    </div>
+    <div style="margin-bottom:8px">
+      <span class="badge
+        {% if current_user.role == 'admin' %}badge-blue
+        {% elif current_user.role == 'purchasing' %}badge-green
+        {% elif current_user.role == 'planning' %}badge-warning
+        {% else %}badge-gray{% endif %}"
+        style="font-size:10px">
+        {{ ROLE_LABELS[current_user.role] }}
+      </span>
+    </div>
+    <a href="{{ url_for('logout') }}" style="color:var(--muted);font-size:11px;text-decoration:none">
+      Sign out →
+    </a>
+    <div style="margin-top:10px">
+    {% endif %}
+    MVP v2.0 · 2026<br>
+    <span style="color:#3B82F6">●</span> System Online
+    {% if current_user %}</div>{% endif %}
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="topbar-sub">{% block page_sub %}{% endblock %}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      {% block topbar_actions %}{% endblock %}
+      {% if current_user %}
+      <div style="display:flex;align-items:center;gap:10px;padding-left:12px;border-left:1px solid var(--border)">
+        <div style="text-align:right">
+          <div style="font-size:12px;font-weight:500;color:var(--text)">{{ current_user.full_name }}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">{{ ROLE_LABELS[current_user.role] }}</div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm"
+           style="border-color:rgba(239,68,68,.4);color:#F87171">
+          Sign out
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-list">
+          {% for cat, msg in messages %}
+            <li class="flash-{{ cat }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+</body>
+</html>

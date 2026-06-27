@@ -1,0 +1,7 @@
+.env
+*.db
+__pycache__/
+.idea/
+static/rfq_pdfs/
+.venv/
+*.pyc

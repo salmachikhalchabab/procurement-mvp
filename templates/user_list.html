@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block page_sub %}Manage system users and roles{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('create_user') }}" class="btn btn-primary">+ Add User</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  {% if users %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="mono">{{ u.username }}</td>
+          <td style="font-weight:500">{{ u.full_name }}</td>
+          <td>
+            <span class="badge
+              {% if u.role == 'admin' %}badge-blue
+              {% elif u.role == 'purchasing' %}badge-green
+              {% elif u.role == 'planning' %}badge-warning
+              {% else %}badge-gray{% endif %}">
+              {{ ROLE_LABELS[u.role] }}
+            </span>
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-green">Active</span>
+            {% else %}
+              <span class="badge badge-gray">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="mono" style="color:var(--muted);font-size:11px">{{ u.created_at[:10] }}</td>
+          <td>
+            {% if u.id != current_user.id %}
+            <a href="{{ url_for('edit_user', user_id=u.id) }}" class="btn btn-outline btn-sm">Edit</a>
+            {% else %}
+            <span style="color:var(--muted);font-size:12px">You</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">◈</div>
+    <p>No users found.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Material{% endblock %}
+{% block page_title %}{{ action }} Material{% endblock %}
+{% block page_sub %}{% if material %}Editing: {{ material.name }}{% else %}Add a new raw material{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('material_list') }}" class="btn btn-outline btn-sm">← Back to Materials</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px;">
+  <div class="card-title">Raw Material Information</div>
+
+  <form method="POST">
+    <div class="form-grid form-grid-2">
+      <div class="form-group">
+        <label>Material Name *</label>
+        <input type="text" name="name" class="form-control" required
+               placeholder="e.g. Steel Sheet"
+               value="{{ material.name if material else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Unit of Measure *</label>
+        <select name="unit_of_measure" class="form-control" required>
+          <option value="">— Select unit —</option>
+          {% for uom in ['KG', 'MTR', 'PCS', 'LTR', 'TON', 'M2', 'BOX'] %}
+            <option value="{{ uom }}"
+              {% if material and material.unit_of_measure == uom %}selected{% endif %}>
+              {{ uom }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div style="display:flex; gap:12px;">
+      <button type="submit" class="btn btn-primary">
+        {{ '✓ Save Changes' if material else '+ Add Material' }} →
+      </button>
+      <a href="{{ url_for('material_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

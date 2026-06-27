@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} User{% endblock %}
+{% block page_title %}{{ action }} User{% endblock %}
+{% block page_sub %}{% if user %}Editing: {{ user.username }}{% else %}Create a new system user{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('user_list') }}" class="btn btn-outline btn-sm">← Back to Users</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-title">User Information</div>
+  <form method="POST">
+    <div class="form-grid form-grid-2">
+      <div class="form-group">
+        <label>Username *</label>
+        <input type="text" name="username" class="form-control" required
+               value="{{ user.username if user else '' }}"
+               {% if user %}readonly style="opacity:0.6"{% endif %}>
+      </div>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" name="full_name" class="form-control" required
+               value="{{ user.full_name if user else '' }}"
+               placeholder="e.g. Ahmad Al-Hassan">
+      </div>
+    </div>
+    <div class="form-grid form-grid-2">
+      <div class="form-group">
+        <label>Role *</label>
+        <select name="role" class="form-control" required>
+          {% for r in roles %}
+          <option value="{{ r }}" {% if user and user.role == r %}selected{% endif %}>
+            {{ ROLE_LABELS[r] }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>{{ 'New Password (leave blank to keep)' if user else 'Password *' }}</label>
+        <input type="password" name="{{ 'new_password' if user else 'password' }}"
+               class="form-control" {% if not user %}required{% endif %}
+               placeholder="{% if user %}Leave blank to keep current{% else %}Min 6 characters{% endif %}">
+      </div>
+    </div>
+    {% if user %}
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" name="is_active" {% if user.is_active %}checked{% endif %}
+               style="width:16px;height:16px;accent-color:var(--accent)">
+        <span style="font-size:13px;color:var(--text)">Active account</span>
+      </label>
+    </div>
+    {% endif %}
+    <hr class="divider">
+    <div style="display:flex;gap:12px">
+      <button type="submit" class="btn btn-primary">
+        {{ '✓ Save Changes' if user else '+ Create User' }} →
+      </button>
+      <a href="{{ url_for('user_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

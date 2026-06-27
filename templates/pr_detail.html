@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}{{ pr.pr_number }}{% endblock %}
+{% block page_title %}{{ pr.pr_number }}{% endblock %}
+{% block page_sub %}Purchase Request Detail{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('pr_list') }}" class="btn btn-outline btn-sm">← All PRs</a>
+{% endblock %}
+
+{% block content %}
+
+{% set all_statuses = ['Draft','Submitted','Approved','RFQ Sent','Closed'] %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title">Status Timeline</div>
+  <div class="status-timeline">
+    {% for s in all_statuses %}
+      {% set is_done = all_statuses.index(s) < all_statuses.index(pr.status) %}
+      {% set is_current = s == pr.status %}
+      <div style="flex:1;text-align:center">
+        <div style="display:flex;align-items:center">
+          {% if not loop.first %}
+          <div class="status-line {{ 'done' if is_done or is_current else '' }}" style="flex:1"></div>
+          {% endif %}
+          <div class="status-dot {{ 'done' if is_done else 'current' if is_current else '' }}"
+               style="margin:0 auto">
+            {{ '✓' if is_done else loop.index }}
+          </div>
+          {% if not loop.last %}
+          <div class="status-line {{ 'done' if is_done else '' }}" style="flex:1"></div>
+          {% endif %}
+        </div>
+        <div class="status-label" style="color:{{ '#34D399' if is_done else '#60A5FA' if is_current else 'var(--muted)' }}">
+          {{ s }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if can_advance %}
+  <hr class="divider">
+  <form method="POST" action="{{ url_for('advance_pr_status', pr_id=pr.id) }}"
+        style="display:flex;gap:12px;align-items:flex-end">
+    <div class="form-group" style="flex:1">
+      <label>Note (optional)</label>
+      <input type="text" name="note" class="form-control" placeholder="e.g. Approved by manager">
+    </div>
+    <button type="submit" class="btn btn-success">Advance to {{ next_status }} →</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-bottom:20px">
+  <div class="section-header">
+    <div class="card-title">PR Information</div>
+    <span class="badge
+      {% if pr.status == 'Draft' %}badge-gray
+      {% elif pr.status == 'Submitted' %}badge-warning
+      {% elif pr.status == 'Approved' %}badge-green
+      {% elif pr.status == 'RFQ Sent' %}badge-blue
+      {% else %}badge-purple{% endif %}">
+      {{ pr.status }}
+    </span>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="detail-label">PR Number</div>
+      <div class="detail-value mono">{{ pr.pr_number }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Raw Material</div>
+      <div class="detail-value">{{ pr.raw_material_name }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Quantity</div>
+      <div class="detail-value mono">{{ pr.quantity }} {{ pr.unit_of_measure }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Requested Date</div>
+      <div class="detail-value mono">{{ pr.requested_date }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Requester</div>
+      <div class="detail-value">{{ pr.requester }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">For Product</div>
+      <div class="detail-value">{{ pr.product_name or '—' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Created By</div>
+      <div class="detail-value">{{ pr.created_by_name or '—' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Created At</div>
+      <div class="detail-value mono" style="font-size:12px">{{ pr.created_at[:16] }}</div>
+    </div>
+  </div>
+  {% if pr.notes %}
+  <div>
+    <div class="detail-label" style="font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Notes</div>
+    <div style="font-size:13px;color:var(--muted)">{{ pr.notes }}</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if has_permission('can_generate_rfq') and pr.status in ['Approved','RFQ Sent'] %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title">Generate RFQ Document</div>
+  <form method="POST" action="{{ url_for('generate_rfq', pr_id=pr.id) }}"
+        style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+    <div class="form-group" style="flex:1;min-width:200px">
+      <label>Send to Vendor (optional)</label>
+      <select name="vendor_id" class="form-control">
+        <option value="">— No specific vendor —</option>
+        {% for v in vendors %}
+        <option value="{{ v.id }}">{{ v.name }} ({{ v.country }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="flex:1;min-width:180px">
+      <label>Quotation Due Date *</label>
+      <input type="date" name="due_date" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success">⬇ Generate RFQ PDF</button>
+  </form>
+</div>
+{% elif pr.status not in ['Approved','RFQ Sent'] %}
+<div class="card" style="margin-bottom:20px;opacity:0.6">
+  <div class="card-title">Generate RFQ Document</div>
+  <p style="font-size:13px;color:var(--muted)">PR must be <strong>Approved</strong> before generating an RFQ.</p>
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title">Generated RFQs</div>
+  {% if rfqs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>RFQ Number</th><th>Vendor</th><th>Due Date</th>
+          <th>Status</th><th>Generated</th><th>PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rfq in rfqs %}
+        <tr>
+          <td class="mono">{{ rfq.rfq_number }}</td>
+          <td>{{ rfq.vendor_name or '—' }}</td>
+          <td class="mono">{{ rfq.quotation_due_date }}</td>
+          <td><span class="badge badge-blue">{{ rfq.status }}</span></td>
+          <td class="mono" style="color:var(--muted);font-size:11px">{{ rfq.created_at[:16] }}</td>
+          <td><a href="{{ url_for('download_rfq', rfq_id=rfq.id) }}" class="btn btn-outline btn-sm">↓ PDF</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">◈</div>
+    <p>No RFQs generated yet.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% if status_log %}
+<div class="card">
+  <div class="card-title">Status History</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>From</th><th>To</th><th>Changed By</th><th>Note</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for log in status_log %}
+        <tr>
+          <td><span class="badge badge-gray">{{ log.old_status or '—' }}</span></td>
+          <td><span class="badge badge-blue">{{ log.new_status }}</span></td>
+          <td>{{ log.changed_by_name or '—' }}</td>
+          <td style="color:var(--muted);font-size:12px">{{ log.note or '—' }}</td>
+          <td class="mono" style="color:var(--muted);font-size:11px">{{ log.changed_at[:16] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
